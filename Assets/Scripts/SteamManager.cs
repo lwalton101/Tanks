@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Steamworks;
 using Steamworks.Data;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Image = UnityEngine.UI.Image;
@@ -37,6 +38,13 @@ public class SteamManager : MonoBehaviour
         SteamClient.Init(gameID);
         
         SteamNetworkingUtils.InitRelayNetworkAccess();
+
+        SteamMatchmaking.OnLobbyCreated += OnLobbyCreated;
+    }
+
+    private void OnLobbyCreated(Result result, Lobby lobby)
+    {
+        Debug.Log("Lobby Created");
     }
 
     // Update is called once per frame
@@ -228,9 +236,9 @@ public class SteamManager : MonoBehaviour
     {
         SceneManager.LoadScene(1);
 
-        SteamMatchmaking.CreateLobbyAsync(4);
+        Lobby lobby = await SteamMatchmaking.CreateLobbyAsync(4);
         inLobby = true;
     }
-    
-    
+
+
 }
