@@ -15,6 +15,7 @@ public class SteamManager : MonoBehaviour
 
     private bool activeSteamSocketServer = false;
     private bool activeSteamSocketConnection = false;
+    private bool inLobby = false;
 
     private TanksServer tanksSocketManager;
     private TanksConnectionManager tanksConnectionManager;
@@ -218,7 +219,7 @@ public class SteamManager : MonoBehaviour
         foreach (var lobby in lobbies)
         {
             GameObject lobbyListing = Instantiate(lobbyPrefab, contentPanel.transform);
-            lobbyListing.GetComponentInChildren<TextMeshProUGUI>().text = lobby.MaxMembers + "'s Lobby";
+            lobbyListing.GetComponentInChildren<TextMeshProUGUI>().text = lobby.Owner.Name + "'s Lobby";
         }
     }
     
@@ -226,7 +227,9 @@ public class SteamManager : MonoBehaviour
     public void CreateLobby()
     {
         SceneManager.LoadScene(1);
-        CreateTanksSocketServer();
+
+        SteamMatchmaking.CreateLobbyAsync(4);
+        inLobby = true;
     }
     
     
