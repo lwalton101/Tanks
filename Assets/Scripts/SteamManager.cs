@@ -40,12 +40,12 @@ public class SteamManager : MonoBehaviour
         SteamNetworkingUtils.InitRelayNetworkAccess();
 
         SteamMatchmaking.OnLobbyCreated += OnLobbyCreated;
+        SteamMatchmaking.OnLobbyEntered += OnLobbyEntered;
+        SteamMatchmaking.OnLobbyMemberJoined += OnLobbyMemberJoined;
+        SteamMatchmaking.OnLobbyMemberDisconnected += OnLobbyMemberDisconnected;
     }
 
-    private void OnLobbyCreated(Result result, Lobby lobby)
-    {
-        Debug.Log("Lobby Created");
-    }
+
 
     // Update is called once per frame
     void Update()
@@ -223,22 +223,46 @@ public class SteamManager : MonoBehaviour
         }
 
         GameObject lobbyPrefab = Resources.Load<GameObject>("LobbyListing");
-        Lobby[] lobbies = await SteamMatchmaking.LobbyList.RequestAsync();
+        Lobby[] lobbies = await SteamMatchmaking.LobbyList.WithKeyValue("test", "data").RequestAsync();
         foreach (var lobby in lobbies)
         {
             GameObject lobbyListing = Instantiate(lobbyPrefab, contentPanel.transform);
             lobbyListing.GetComponentInChildren<TextMeshProUGUI>().text = lobby.Owner.Name + "'s Lobby";
+            lobbyListing.GetComponent<LobbyListingContainer>().lobby = lobby;
         }
     }
     
 
     public void CreateLobby()
     {
-        SceneManager.LoadScene(1);
-
-        Lobby lobby = await SteamMatchmaking.CreateLobbyAsync(4);
+        SteamMatchmaking.CreateLobbyAsync(4);
         inLobby = true;
     }
+    
+    private void OnLobbyCreated(Result result, Lobby lobby)
+    {
+        Debug.Log("Lobby Created");
+        lobby.SetData("test", "data");
+    }
+    
+    private void OnLobbyMemberDisconnected(Lobby lobby, Friend friend)
+    {
+        Debug.Log($"Someone left the lobby with name {friend.Name}");
+    }
 
+    private void OnLobbyMemberJoined(Lobby lobby, Friend friend)
+    {
+        Debug.Log($"Someone joined the lobby with name {friend.Name}");
+    }
 
+    private void OnLobbyEntered(Lobby lobby)
+    {
+        Debug.Log("Lobby joined");
+        SceneManager.LoadScene(1);
+    }
+
+    public void JoinLobby(Lobby lobby)
+    {
+        SteamMatchmaking.JoinLobbyAsync(lobby.Id);
+    }
 }
