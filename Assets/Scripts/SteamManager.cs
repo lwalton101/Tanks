@@ -20,6 +20,8 @@ public class SteamManager : MonoBehaviour
 
     private TanksServer tanksSocketManager;
     private TanksConnectionManager tanksConnectionManager;
+
+    public Lobby lobby;
     
     private bool isAppQuitting = false;
     // Start is called before the first frame update
@@ -224,6 +226,8 @@ public class SteamManager : MonoBehaviour
 
         GameObject lobbyPrefab = Resources.Load<GameObject>("LobbyListing");
         Lobby[] lobbies = await SteamMatchmaking.LobbyList.WithKeyValue("test", "data").RequestAsync();
+        if(lobbies == null)
+            return;
         foreach (var lobby in lobbies)
         {
             GameObject lobbyListing = Instantiate(lobbyPrefab, contentPanel.transform);
@@ -248,21 +252,31 @@ public class SteamManager : MonoBehaviour
     private void OnLobbyMemberDisconnected(Lobby lobby, Friend friend)
     {
         Debug.Log($"Someone left the lobby with name {friend.Name}");
+        LobbyUIManager.Instance.RemovePlayerFromListing(friend);
     }
 
     private void OnLobbyMemberJoined(Lobby lobby, Friend friend)
     {
         Debug.Log($"Someone joined the lobby with name {friend.Name}");
+        LobbyUIManager.Instance.AddPlayerToListing(friend);
     }
 
     private void OnLobbyEntered(Lobby lobby)
     {
         Debug.Log("Lobby joined");
+        this.lobby = lobby;
         SceneManager.LoadScene(1);
     }
 
     public void JoinLobby(Lobby lobby)
     {
         SteamMatchmaking.JoinLobbyAsync(lobby.Id);
+    }
+
+    public void LeaveLobby()
+    {
+        lobby.Leave();
+        Debug.Log("Leaving Lobby");
+        SceneManager.LoadScene(0);
     }
 }
