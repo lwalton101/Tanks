@@ -4094,7 +4094,7 @@ GameObject:
   - component: {fileID: 1978365297}
   - component: {fileID: 1978365298}
   m_Layer: 5
-  m_Name: TabContent
+  m_Name: Create Lobby
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
