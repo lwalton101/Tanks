@@ -13,7 +13,7 @@ using Image = UnityEngine.UI.Image;
 
 public class SteamManager : MonoBehaviour
 {
-    private static uint gameID = 480;
+    private readonly uint gameID = 480;
     public static SteamManager Instance;
 
     private bool activeSteamSocketServer = false;
@@ -223,9 +223,9 @@ public class SteamManager : MonoBehaviour
 
     public async void RefreshLobbies(GameObject contentPanel)
     {
-        foreach (GameObject child in transform)
+        foreach (Transform child in contentPanel.transform)
         {
-            Destroy(child);
+            Destroy(child.gameObject);
         }
 
         GameObject lobbyPrefab = Resources.Load<GameObject>("LobbyListing");
