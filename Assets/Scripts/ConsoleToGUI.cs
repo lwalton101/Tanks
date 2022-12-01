@@ -1,15 +1,23 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Random = UnityEngine.Random;
 
 public class ConsoleToGUI : MonoBehaviour
- {
+{
+    [SerializeField] private Key toggle = Key.Space;
      string myLog = "*begin log";
      string filename = "";
      bool doShow = true;
      int kChars = 700;
-     void OnEnable() { Application.logMessageReceived += Log; }
+
+     void OnEnable()
+     {
+         Application.logMessageReceived += Log;
+         DontDestroyOnLoad(this);
+     }
      void OnDisable() { Application.logMessageReceived -= Log; }
-     void Update() { if (Keyboard.current[Key.Space].wasPressedThisFrame) { doShow = !doShow; } }
+     void Update() { if (Keyboard.current[toggle].wasPressedThisFrame) { doShow = !doShow; } }
      public void Log(string logString, string stackTrace, LogType type)
      {
         // for onscreen...
@@ -36,4 +44,5 @@ public class ConsoleToGUI : MonoBehaviour
             new Vector3(Screen.width / 1200.0f, Screen.height / 800.0f, 1.0f));
          GUI.TextArea(new Rect(10, 10, 540, 370), myLog);
      }
- }
+
+}
