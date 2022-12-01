@@ -2,6 +2,7 @@ using System;
 using TMPro;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Steamworks;
 using Steamworks.Data;
 using Unity.VisualScripting;
@@ -47,6 +48,7 @@ public class SteamManager : MonoBehaviour
         SteamMatchmaking.OnLobbyEntered += OnLobbyEntered;
         SteamMatchmaking.OnLobbyMemberJoined += OnLobbyMemberJoined;
         SteamMatchmaking.OnLobbyMemberDisconnected += OnLobbyMemberDisconnected;
+        SteamMatchmaking.OnLobbyMemberLeave += OnLobbyMemberDisconnected;
     }
 
 
@@ -180,8 +182,6 @@ public class SteamManager : MonoBehaviour
             Debug.Log("Unable to process message from socket server");
         }
     }
-    
-    
     private void OnApplicationQuit()
     {
         isAppQuitting = true;
@@ -233,7 +233,7 @@ public class SteamManager : MonoBehaviour
         foreach (var lobby in lobbies)
         {
             GameObject lobbyListing = Instantiate(lobbyPrefab, contentPanel.transform);
-            lobbyListing.GetComponentInChildren<TextMeshProUGUI>().text = lobby.Owner.Name + "'s Lobby";
+            lobbyListing.GetComponentInChildren<TextMeshProUGUI>().text = lobby.GetData("name") + "'s Lobby";
             lobbyListing.GetComponent<LobbyListingContainer>().lobby = lobby;
         }
     }
@@ -248,7 +248,9 @@ public class SteamManager : MonoBehaviour
     private void OnLobbyCreated(Result result, Lobby lobby)
     {
         Debug.Log("Lobby Created");
+        lobby.SetPublic();
         lobby.SetData("test", "data");
+        lobby.SetData("name", SteamClient.Name);
     }
     
     private void OnLobbyMemberDisconnected(Lobby lobby, Friend friend)
@@ -277,8 +279,10 @@ public class SteamManager : MonoBehaviour
 
     public void LeaveLobby()
     {
-        lobby.Leave();
+        lobby.Leave(); 
+        
         Debug.Log("Leaving Lobby");
+        Debug.Log($"Lobby id validity is {lobby.Id.IsValid}");
         SceneManager.LoadScene(0);
     }
 }

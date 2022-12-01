@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Steamworks;
 using Steamworks.Data;
 using UnityEngine;
@@ -9,8 +10,8 @@ public class LobbyUIManager : MonoBehaviour
 {
     public static LobbyUIManager Instance;
     [SerializeField] private GameObject playerScrollViewContent;
-    private Dictionary<Friend, GameObject> playerListingDictionary;
-    private void Awake()
+    private Dictionary<Friend, GameObject> playerListingDictionary = new Dictionary<Friend, GameObject>();
+    private async void Awake()
     {
         if (Instance != null && Instance != this)
         {
@@ -28,6 +29,8 @@ public class LobbyUIManager : MonoBehaviour
             AddPlayerToListing(player);
         }   
         
+        
+        
     }
 
     public void AddPlayerToListing(Friend player)
@@ -39,6 +42,7 @@ public class LobbyUIManager : MonoBehaviour
 
         playerLobbyListingContainer.player = player;
         playerLobbyListingContainer.SetListingInfo();
+        playerListingDictionary.Add(player, playerLobbyListing);
     }
 
     public void RemovePlayerFromListing(Friend player)
