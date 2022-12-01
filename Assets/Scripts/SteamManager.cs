@@ -49,8 +49,10 @@ public class SteamManager : MonoBehaviour
         SteamMatchmaking.OnLobbyMemberJoined += OnLobbyMemberJoined;
         SteamMatchmaking.OnLobbyMemberDisconnected += OnLobbyMemberDisconnected;
         SteamMatchmaking.OnLobbyMemberLeave += OnLobbyMemberDisconnected;
+        SteamMatchmaking.OnChatMessage += OnChatMessage;
     }
 
+    
 
 
     // Update is called once per frame
@@ -284,5 +286,15 @@ public class SteamManager : MonoBehaviour
         Debug.Log("Leaving Lobby");
         Debug.Log($"Lobby id validity is {lobby.Id.IsValid}");
         SceneManager.LoadScene(0);
+    }
+
+    public void SendLobbyChatMessage(string message)
+    {
+        lobby.SendChatString(message);
+    }
+    
+    private void OnChatMessage(Lobby lobby, Friend player, string message)
+    {
+        LobbyUIManager.Instance.ChatMessageRecieve(player, message);
     }
 }

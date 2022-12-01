@@ -4,12 +4,15 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Steamworks;
 using Steamworks.Data;
+using TMPro;
 using UnityEngine;
 
 public class LobbyUIManager : MonoBehaviour
 {
     public static LobbyUIManager Instance;
     [SerializeField] private GameObject playerScrollViewContent;
+    [SerializeField] private GameObject chatScrollViewContent;
+    [SerializeField] private TextMeshProUGUI chatInput;
     private Dictionary<Friend, GameObject> playerListingDictionary = new Dictionary<Friend, GameObject>();
     private async void Awake()
     {
@@ -54,5 +57,25 @@ public class LobbyUIManager : MonoBehaviour
     public void LeaveLobby()
     {
         SteamManager.Instance.LeaveLobby();
+    }
+
+    public void ChatMessageRecieve(Friend player, string message)
+    {
+        string newMessage = $"<{player.Name}> {message}";
+        AddChatMessage(newMessage);
+    }
+
+    public void SendMessage()
+    {
+        SteamManager.Instance.SendLobbyChatMessage(chatInput.text);
+        chatInput.text = "";
+    }
+
+    private void AddChatMessage(string message)
+    {
+        GameObject chatMessagePrefab = Resources.Load<GameObject>("ChatMessage");
+        
+        var chatMessage = Instantiate(chatMessagePrefab, chatScrollViewContent.transform);
+        chatMessage.GetComponent<TextMeshProUGUI>().text = message;
     }
 }
