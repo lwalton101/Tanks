@@ -24,6 +24,7 @@ public class PlayerLobbyListingContainer : MonoBehaviour
         }
 
         PlayerNameObject.text = player.Name;
+        PlayerNameObject.color = SteamManager.Instance.playerReadyDict[player.Id] ? SteamManager.Instance.notReadyColor : SteamManager.Instance.readyColor;
 
     }
     

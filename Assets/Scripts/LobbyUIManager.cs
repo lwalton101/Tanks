@@ -6,6 +6,7 @@ using Steamworks;
 using Steamworks.Data;
 using TMPro;
 using UnityEngine;
+using Color = UnityEngine.Color;
 
 public class LobbyUIManager : MonoBehaviour
 {
@@ -13,8 +14,9 @@ public class LobbyUIManager : MonoBehaviour
     [SerializeField] private GameObject playerScrollViewContent;
     [SerializeField] private GameObject chatScrollViewContent;
     [SerializeField] private TextMeshProUGUI chatInput;
-    private Dictionary<Friend, GameObject> playerListingDictionary = new Dictionary<Friend, GameObject>();
-    private async void Awake()
+    
+    private Dictionary<SteamId, PlayerLobbyListingContainer> playerListingDictionary = new();
+    private void Awake()
     {
         if (Instance != null && Instance != this)
         {
@@ -26,14 +28,11 @@ public class LobbyUIManager : MonoBehaviour
         Instance = this;
         
         Lobby lobby = SteamManager.Instance.lobby;
-        
+
         foreach (Friend player in lobby.Members)
         {
             AddPlayerToListing(player);
-        }   
-        
-        
-        
+        }
     }
 
     public void AddPlayerToListing(Friend player)
@@ -43,15 +42,22 @@ public class LobbyUIManager : MonoBehaviour
         PlayerLobbyListingContainer playerLobbyListingContainer =
             playerLobbyListing.GetComponent<PlayerLobbyListingContainer>();
 
+        SteamManager.Instance.playerReadyDict.Add(player.Id, false);
+        playerListingDictionary.Add(player.Id, playerLobbyListingContainer);
         playerLobbyListingContainer.player = player;
         playerLobbyListingContainer.SetListingInfo();
-        playerListingDictionary.Add(player, playerLobbyListing);
+        
     }
 
     public void RemovePlayerFromListing(Friend player)
     {
-        Destroy(playerListingDictionary[player]);
-        playerListingDictionary.Remove(player);
+        Destroy(playerListingDictionary[player.Id].gameObject);
+        playerListingDictionary.Remove(player.Id);
+    }
+
+    public void UpdatePlayerListing(Friend player)
+    {
+        playerListingDictionary[player.Id].SetListingInfo();
     }
 
     public void LeaveLobby()
@@ -65,7 +71,7 @@ public class LobbyUIManager : MonoBehaviour
         AddChatMessage(newMessage);
     }
 
-    public void SendMessage()
+    public void SendChatMessage()
     {
         SteamManager.Instance.SendLobbyChatMessage(chatInput.text);
         chatInput.text = "";
@@ -77,5 +83,10 @@ public class LobbyUIManager : MonoBehaviour
         
         var chatMessage = Instantiate(chatMessagePrefab, chatScrollViewContent.transform);
         chatMessage.GetComponent<TextMeshProUGUI>().text = message;
+    }
+
+    public void SendReadyMessage()
+    {
+        SteamManager.Instance.SendLobbyReady();
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using TMPro;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Color = UnityEngine.Color;
 using Image = UnityEngine.UI.Image;
 
 public class SteamManager : MonoBehaviour
@@ -24,8 +26,13 @@ public class SteamManager : MonoBehaviour
     private TanksConnectionManager tanksConnectionManager;
 
     public Lobby lobby;
-    
+    public Dictionary<SteamId, bool> playerReadyDict = new();
+
     private bool isAppQuitting = false;
+    
+    [Header("Ready Colors")] 
+    [SerializeField] public Color readyColor = Color.red;
+    [SerializeField] public Color notReadyColor = Color.green;
     // Start is called before the first frame update
     void OnEnable()
     {
@@ -259,6 +266,7 @@ public class SteamManager : MonoBehaviour
     {
         Debug.Log($"Someone left the lobby with name {friend.Name}");
         LobbyUIManager.Instance.RemovePlayerFromListing(friend);
+        playerReadyDict.Remove(friend.Id);
     }
 
     private void OnLobbyMemberJoined(Lobby lobby, Friend friend)
@@ -286,15 +294,41 @@ public class SteamManager : MonoBehaviour
         Debug.Log("Leaving Lobby");
         Debug.Log($"Lobby id validity is {lobby.Id.IsValid}");
         SceneManager.LoadScene(0);
+        playerReadyDict.Clear();
     }
 
     public void SendLobbyChatMessage(string message)
     {
-        lobby.SendChatString(message);
+        lobby.SendChatString($"[{LobbyPacketHeader.Chat.ToString()}]" + message);
     }
     
+    //TODO: Fix "]" not sending
     private void OnChatMessage(Lobby lobby, Friend player, string message)
     {
-        LobbyUIManager.Instance.ChatMessageRecieve(player, message);
+        var splitMessage = message.Split("]");
+        LobbyPacketHeader header = Enum.Parse<LobbyPacketHeader>(splitMessage[0].Replace("[", ""));
+        var data = String.Join("", splitMessage.Skip(1).ToArray());
+        switch (header)
+        {
+            case LobbyPacketHeader.Chat:
+                LobbyUIManager.Instance.ChatMessageRecieve(player, data);
+                break;
+            case LobbyPacketHeader.Ready:
+                Debug.Log("Recieved Lobby Ready Message");
+                OnReady(player);
+                break;
+        }
+        
+    }
+
+    public void SendLobbyReady()
+    {
+        lobby.SendChatString($"[{LobbyPacketHeader.Ready}]");
+        Debug.Log("Sent ready packet");
+    }
+    private void OnReady(Friend player)
+    {
+        playerReadyDict[player.Id] = !playerReadyDict[player.Id];
+        LobbyUIManager.Instance.UpdatePlayerListing(player);
     }
 }
