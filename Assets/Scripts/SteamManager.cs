@@ -7,6 +7,7 @@ using Steamworks.Data;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using Image = UnityEngine.UI.Image;
 
 public class SteamManager : MonoBehaviour
@@ -25,7 +26,7 @@ public class SteamManager : MonoBehaviour
     
     private bool isAppQuitting = false;
     // Start is called before the first frame update
-    void Awake()
+    void OnEnable()
     {
         DontDestroyOnLoad(this);
         if (Instance != null && Instance != this)
@@ -38,6 +39,7 @@ public class SteamManager : MonoBehaviour
         Instance = this;
         
         SteamClient.Init(gameID);
+        Debug.Log($"Steam user {SteamClient.Name} initiated");
         
         SteamNetworkingUtils.InitRelayNetworkAccess();
 
