@@ -33,6 +33,23 @@ public class SteamManager : MonoBehaviour
     [Header("Ready Colors")] 
     [SerializeField] public Color readyColor = Color.red;
     [SerializeField] public Color notReadyColor = Color.green;
+
+    public bool IsEveryoneReady
+    {
+        get
+        {
+            foreach (var id in playerReadyDict.Keys)
+            {
+                if (!playerReadyDict[id])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
+
     // Start is called before the first frame update
     void OnEnable()
     {
@@ -57,9 +74,8 @@ public class SteamManager : MonoBehaviour
         SteamMatchmaking.OnLobbyMemberDisconnected += OnLobbyMemberDisconnected;
         SteamMatchmaking.OnLobbyMemberLeave += OnLobbyMemberDisconnected;
         SteamMatchmaking.OnChatMessage += OnChatMessage;
+        SteamMatchmaking.OnLobbyGameCreated += OnLobbyGameCreated;
     }
-
-    
 
 
     // Update is called once per frame
@@ -86,35 +102,34 @@ public class SteamManager : MonoBehaviour
 
     private void CreateTanksSocketServer()
     {
-        Debug.Log("Creating Socket Server and joining Socket Server");
+        Debug.Log("Creating Socket Server");
         tanksSocketManager = SteamNetworkingSockets.CreateRelaySocket<TanksServer>();
-        tanksConnectionManager = SteamNetworkingSockets.ConnectRelay<TanksConnectionManager>(SteamClient.SteamId);
+        //tanksConnectionManager = SteamNetworkingSockets.ConnectRelay<TanksConnectionManager>(SteamClient.SteamId);
         activeSteamSocketServer = true;
-        activeSteamSocketServer = true;
+        lobby.SetGameServer(SteamClient.SteamId);
     }
 
     private void JoinTanksSocketServer(SteamId lobbySteamId)
     {
         Debug.Log("Joining socket server");
         tanksConnectionManager = SteamNetworkingSockets.ConnectRelay<TanksConnectionManager>(lobbySteamId);
-        activeSteamSocketServer = false;
         activeSteamSocketConnection = true;
     }
     
     private void LeaveTanksSocketServer()
     {
+        if (activeSteamSocketServer)
+        {
+            tanksSocketManager.Close();
+            Debug.Log("Closed Server");
+        }
+        if (activeSteamSocketConnection)
+        {
+            tanksConnectionManager.Close();
+            Debug.Log("Closed connection");
+        }
         activeSteamSocketServer = false;
         activeSteamSocketConnection = false;
-        try
-        {
-            // Shutdown connections/sockets. I put this in try block because if player 2 is leaving they don't have a socketManager to close, only connection
-            tanksSocketManager.Close();
-            tanksConnectionManager.Close();
-        }
-        catch
-        {
-            Debug.Log("Error closing socket server / connection manager");
-        }
     }
     
     public void RelaySocketMessageReceived(IntPtr message, int size, uint connectionSendingMessageId)
@@ -140,9 +155,10 @@ public class SteamManager : MonoBehaviour
         }
     }
     
-    public bool SendMessageToSocketServer(string message)
+    public bool SendMessageToSocketServer(Message message)
     {
-        byte[] messageToSendBytes = Encoding.ASCII.GetBytes(message);
+        string messageString = message.ToString();
+        byte[] messageToSendBytes = Encoding.ASCII.GetBytes(message.ToString());
         try
         {
             // Convert string/byte[] message into IntPtr data type for efficient message send / garbage management
@@ -292,7 +308,6 @@ public class SteamManager : MonoBehaviour
         lobby.Leave(); 
         
         Debug.Log("Leaving Lobby");
-        Debug.Log($"Lobby id validity is {lobby.Id.IsValid}");
         SceneManager.LoadScene(0);
         playerReadyDict.Clear();
     }
@@ -330,5 +345,20 @@ public class SteamManager : MonoBehaviour
     {
         playerReadyDict[player.Id] = !playerReadyDict[player.Id];
         LobbyUIManager.Instance.UpdatePlayerListing(player);
+    }
+
+    public void StartLobbyGame()
+    {
+        if (lobby.IsOwnedBy(SteamClient.SteamId))
+        {
+            CreateTanksSocketServer();
+        }
+    }
+    
+    private void OnLobbyGameCreated(Lobby lobby, uint arg2, ushort arg3, SteamId lobbyId)
+    {
+        JoinTanksSocketServer(lobbyId);
+        LeaveLobby();
+        SceneManager.LoadScene(2);
     }
 }

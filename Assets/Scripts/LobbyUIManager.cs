@@ -6,6 +6,7 @@ using Steamworks;
 using Steamworks.Data;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using Color = UnityEngine.Color;
 
 public class LobbyUIManager : MonoBehaviour
@@ -14,6 +15,8 @@ public class LobbyUIManager : MonoBehaviour
     [SerializeField] private GameObject playerScrollViewContent;
     [SerializeField] private GameObject chatScrollViewContent;
     [SerializeField] private TextMeshProUGUI chatInput;
+
+    [SerializeField] private Button startButton;
     
     private Dictionary<SteamId, PlayerLobbyListingContainer> playerListingDictionary = new();
     private void Awake()
@@ -33,6 +36,18 @@ public class LobbyUIManager : MonoBehaviour
         {
             AddPlayerToListing(player);
         }
+    }
+    
+    private void Update(){
+        if (SteamManager.Instance.lobby.IsOwnedBy(SteamClient.SteamId) && SteamManager.Instance.IsEveryoneReady)
+        {
+            startButton.interactable = true;
+        }
+        else
+        {
+            startButton.interactable = false;
+        }
+        
     }
 
     public void AddPlayerToListing(Friend player)
@@ -88,5 +103,10 @@ public class LobbyUIManager : MonoBehaviour
     public void SendReadyMessage()
     {
         SteamManager.Instance.SendLobbyReady();
+    }
+
+    public void StartLobbyGame()
+    {
+        SteamManager.Instance.StartLobbyGame();
     }
 }
