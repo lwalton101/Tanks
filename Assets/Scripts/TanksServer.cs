@@ -11,23 +11,23 @@ public class TanksServer : SocketManager
     {
         base.OnConnecting(connection, info);
         connection.Accept();
-        Debug.Log($"{info.Identity.SteamId} is connecting");
+        Debug.Log($"[Server] {info.Identity.SteamId} is connecting");
     }
 
     public override void OnConnected(Connection connection, ConnectionInfo info)
     {
         base.OnConnected(connection, info);
-        Debug.Log($"{info.Identity.SteamId} has connected");
+        Debug.Log($"[Server] {info.Identity.SteamId} has connected");
     }
     
     public override void OnDisconnected( Connection connection, ConnectionInfo data )
     {
-        Debug.Log( $"{data.Identity.SteamId} is out of here" );
+        Debug.Log( $"[Server] {data.Identity.SteamId} is out of here" );
     }
 
     public override void OnMessage( Connection connection, NetIdentity identity, IntPtr data, int size, long messageNum, long recvTime, int channel )
     {
-        Debug.Log( $"We got a message from {identity.SteamId}!" );
+        Debug.Log( $"[Server] Server got a message from {identity.SteamId}!" );
 
         // Send it right back
         SteamManager.Instance.RelaySocketMessageReceived(data, size, connection.Id);
